@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head
-  <link rel="manifest" href="./manifest.json">
+<link rel="manifest" href="./manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">>
   <meta charset="UTF-8">
@@ -942,7 +942,7 @@
         <button class="action-btn" onclick="toggleSizeDrawer()" title="Toggle Screen Size Controls">📐</button>
       </div>
 
-      <!-- Collapsible Screen & Button Size Drawer -->
+     <!-- Collapsible Screen & Button Size Drawer -->
       <div id="size-drawer" style="display:block; margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.15);">
         <!-- Fullscreen Button to hide phone browser bars -->
         <button class="action-btn online-btn" style="width:100%; margin-bottom:6px; padding:6px; font-size:11px;" onclick="toggleFullScreenApp()">⛶ FULLSCREEN (HIDE BROWSER)</button>
@@ -980,6 +980,8 @@
         <input type="range" id="screenScaleSlider" min="60" max="100" value="85"
           style="width:100%; margin-top:4px; accent-color:#00d2d3; cursor:pointer;">
       </div>
+    </div>
+  </div>
 
   <!-- Bottom Car Selector Bar -->
   <div id="garage-bar"></div>
@@ -1307,7 +1309,7 @@
     if (toggleBtn) toggleBtn.textContent = '☰ MENU / SHOP / SAVE';
   };
 
-// Live UI & Touch Button Size Sliders + Fullscreen Toggle
+ // Live UI & Touch Button Size Sliders + Fullscreen Toggle
   window.updateUiScales = function() {
     const btnPct = parseInt(document.getElementById('btnScaleSlider').value, 10) || 125;
     const hudPct = parseInt(document.getElementById('hudScaleSlider').value, 10) || 100;
