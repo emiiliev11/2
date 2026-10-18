@@ -783,6 +783,60 @@
         max-width: 92vw;
       }
     }
+  :root {
+      --btn-scale: 1.25; /* Default 125% larger for phones! */
+      --hud-scale: 1.0;
+    }
+
+    /* Dynamic scaling for mobile touch buttons */
+    #touch-left {
+      transform: scale(var(--btn-scale));
+      transform-origin: bottom left;
+    }
+    #touch-right {
+      left: calc(10px + 68px * var(--btn-scale)) !important;
+      transform: scale(var(--btn-scale));
+      transform-origin: bottom left;
+    }
+    #touch-gas {
+      transform: scale(var(--btn-scale));
+      transform-origin: bottom right;
+    }
+    #touch-brake {
+      right: calc(10px + 68px * var(--btn-scale)) !important;
+      transform: scale(var(--btn-scale));
+      transform-origin: bottom right;
+    }
+    #touch-drift {
+      bottom: calc(14px + 66px * var(--btn-scale)) !important;
+      transform: scale(var(--btn-scale));
+      transform-origin: bottom right;
+    }
+    #touch-nos {
+      bottom: calc(14px + 66px * var(--btn-scale)) !important;
+      right: calc(14px + 86px * var(--btn-scale)) !important;
+      transform: scale(var(--btn-scale));
+      transform-origin: bottom right;
+    }
+    #touch-emp {
+      bottom: calc(18px + 106px * var(--btn-scale)) !important;
+      transform: scale(var(--btn-scale));
+      transform-origin: bottom right;
+    }
+
+    .touch-pad:active, .touch-pad.pressed {
+      transform: scale(calc(var(--btn-scale) * 0.90)) !important;
+    }
+
+    /* Dynamic scaling for Top HUD panels */
+    #hud-left {
+      transform: scale(var(--hud-scale));
+      transform-origin: top left;
+    }
+    #hud-right {
+      transform: scale(var(--hud-scale));
+      transform-origin: top right;
+    }
   </style>
 </head>
 <body>
@@ -888,8 +942,30 @@
         <button class="action-btn" onclick="toggleSizeDrawer()" title="Toggle Screen Size Controls">📐</button>
       </div>
 
-      <!-- Collapsible Screen Size Drawer -->
-      <div id="size-drawer" style="display:none; margin-top:6px; padding-top:5px; border-top:1px solid rgba(255,255,255,0.1);">
+      <!-- Collapsible Screen & Button Size Drawer -->
+      <div id="size-drawer" style="display:block; margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.15);">
+        <!-- Fullscreen Button to hide phone browser bars -->
+        <button class="action-btn online-btn" style="width:100%; margin-bottom:6px; padding:6px; font-size:11px;" onclick="toggleFullScreenApp()">⛶ FULLSCREEN (HIDE BROWSER)</button>
+
+        <!-- Slider 1: Touch Buttons Size -->
+        <div style="font-size:10px; font-weight:bold; color:#00f2fe; display:flex; justify-content:space-between;">
+          <span>🕹️ BUTTON SIZE</span>
+          <span id="btnScaleLabel">125%</span>
+        </div>
+        <input type="range" id="btnScaleSlider" min="80" max="180" value="125"
+          style="width:100%; margin:3px 0 6px 0; accent-color:#00f2fe; cursor:pointer;"
+          oninput="updateUiScales()">
+
+        <!-- Slider 2: HUD Panels Size -->
+        <div style="font-size:10px; font-weight:bold; color:#feca57; display:flex; justify-content:space-between;">
+          <span>📊 HUD / MENU SIZE</span>
+          <span id="hudScaleLabel">100%</span>
+        </div>
+        <input type="range" id="hudScaleSlider" min="70" max="135" value="100"
+          style="width:100%; margin:3px 0 6px 0; accent-color:#feca57; cursor:pointer;"
+          oninput="updateUiScales()">
+
+        <!-- Display Resolution Controls -->
         <div style="font-size:9.5px; font-weight:bold; color:#a4b0be; display:flex; justify-content:space-between;">
           <span>DISPLAY</span>
           <span id="resolutionLabel" style="color:#00d2d3;">1280×820</span>
@@ -904,8 +980,6 @@
         <input type="range" id="screenScaleSlider" min="60" max="100" value="85"
           style="width:100%; margin-top:4px; accent-color:#00d2d3; cursor:pointer;">
       </div>
-    </div>
-  </div>
 
   <!-- Bottom Car Selector Bar -->
   <div id="garage-bar"></div>
@@ -1233,9 +1307,45 @@
     if (toggleBtn) toggleBtn.textContent = '☰ MENU / SHOP / SAVE';
   };
 
-  window.toggleSizeDrawer = function() {
-    const d = document.getElementById('size-drawer');
-    d.style.display = d.style.display === 'none' ? 'block' : 'none';
+// Live UI & Touch Button Size Sliders + Fullscreen Toggle
+  window.updateUiScales = function() {
+    const btnPct = parseInt(document.getElementById('btnScaleSlider').value, 10) || 125;
+    const hudPct = parseInt(document.getElementById('hudScaleSlider').value, 10) || 100;
+
+    document.documentElement.style.setProperty('--btn-scale', (btnPct / 100).toFixed(2));
+    document.documentElement.style.setProperty('--hud-scale', (hudPct / 100).toFixed(2));
+
+    document.getElementById('btnScaleLabel').textContent = `${btnPct}%`;
+    document.getElementById('hudScaleLabel').textContent = `${hudPct}%`;
+
+    localStorage.setItem('cityDrift_btnScale', btnPct);
+    localStorage.setItem('cityDrift_hudScale', hudPct);
+  };
+
+  // Load saved button/HUD sizes on startup
+  (function initSavedUiScales() {
+    const savedBtn = localStorage.getItem('cityDrift_btnScale') || (window.innerWidth <= 900 ? '130' : '115');
+    const savedHud = localStorage.getItem('cityDrift_hudScale') || '100';
+    const bSlider = document.getElementById('btnScaleSlider');
+    const hSlider = document.getElementById('hudScaleSlider');
+    if (bSlider) bSlider.value = savedBtn;
+    if (hSlider) hSlider.value = savedHud;
+    window.updateUiScales();
+  })();
+
+  // Instant Fullscreen + Landscape Lock for Mobile Browsers
+  window.toggleFullScreenApp = function() {
+    const docEl = document.documentElement;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      if (docEl.requestFullscreen) docEl.requestFullscreen();
+      else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
   };
 
   function syncCanvasResolution() {
